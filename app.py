@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
-import pdfkit
 import os
 
 st.set_page_config(page_title="Insurance Predictor", layout="centered")
@@ -94,19 +93,9 @@ if not st.session_state['history'].empty:
     csv = st.session_state['history'].to_csv(index=False).encode('utf-8')
     st.download_button("⬇️ Download CSV" if language == "English" else "⬇️ CSV herunterladen", csv, "prediction_history.csv", "text/csv")
 
-    # Generate PDF
-    st.markdown("### 📄 Generate PDF Report" if language == "English" else "### 📄 PDF-Bericht erzeugen")
+    # HTML preview (instead of PDF for Cloud compatibility)
+    st.markdown("### 📄 Preview HTML Report" if language == "English" else "### 📄 HTML-Bericht anzeigen")
     html_table = st.session_state['history'].to_html(index=False)
-    html_content = f"""
-    <html><head><meta charset='utf-8'></head><body>
-    <h2>{'Insurance Prediction History' if language == 'English' else 'Versicherungsvorhersage-Verlauf'}</h2>
-    {html_table}
-    </body></html>
-    """
-    wkhtml_path = r"C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe"
-    config = pdfkit.configuration(wkhtmltopdf=wkhtml_path)
+    st.components.v1.html(f"<div style='overflow-x:auto;'>{html_table}</div>", height=400)
 
-    if st.button("📥 Download PDF Report" if language == "English" else "📥 PDF-Bericht herunterladen"):
-        pdfkit.from_string(html_content, "insurance_report.pdf", configuration=config)
-        with open("insurance_report.pdf", "rb") as f:
-            st.download_button("⬇️ Download PDF" if language == "English" else "⬇️ PDF herunterladen", f, file_name="insurance_report.pdf")
+    st.info("📄 PDF generation is only available in the local version." if language == "English" else "📄 PDF-Erstellung ist nur in der lokalen Version verfügbar.")
