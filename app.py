@@ -9,25 +9,28 @@ from email.message import EmailMessage
 
 st.set_page_config(page_title="Insurance Predictor", layout="centered")
 
-# Logo
-st.image("Sarooj-Sazeh-Tabnak.png", width=200)
-
-# Welcome banner (full width under logo)
+# Logo with colored background
 st.markdown("""
-<div style='background-color: #e3f2fd; padding: 20px; width: 100%; text-align: center; margin-bottom: 20px;'>
+<div style='background-color: #e3f2fd; padding: 10px 0; width: 100%; text-align: center;'>
+    <img src='https://raw.githubusercontent.com/sam111112121/insurance-predictor/main/Sarooj-Sazeh-Tabnak.png' width='200'/>
+</div>
+""", unsafe_allow_html=True)
+
+# Welcome message
+language = st.selectbox("🌐 Choose Language / Sprache wählen:", ["English", "Deutsch"], index=0)
+st.session_state["language"] = language
+
+st.markdown("""
+<div style='background-color: #f0f4ff; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px;'>
     <h3 style='margin: 0;'>👋 {}<h3>
     <p style='margin: 0;'>{}</p>
 </div>
 """.format(
-    "Welcome to the Insurance Cost Predictor App!" if st.session_state.get("language", "English") == "English" else
+    "Welcome to the Insurance Cost Predictor App!" if language == "English" else
     "Willkommen zur Versicherungskosten-Vorhersage-App!",
-    "Fill out the form to estimate your annual insurance cost using our trained model." if st.session_state.get("language", "English") == "English" else
+    "Fill out the form to estimate your annual insurance cost using our trained model." if language == "English" else
     "Füllen Sie das Formular aus, um Ihre jährlichen Versicherungskosten mithilfe unseres Modells zu schätzen."
 ), unsafe_allow_html=True)
-
-# Language selection
-language = st.selectbox("🌐 Choose Language / Sprache wählen:", ["English", "Deutsch"], index=0)
-st.session_state["language"] = language
 
 # Styling
 st.markdown("""
