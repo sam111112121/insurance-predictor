@@ -3,14 +3,17 @@ import pandas as pd
 import numpy as np
 import joblib
 import os
+from sklearn.linear_model import LinearRegression
+import smtplib
+from email.message import EmailMessage
 
 st.set_page_config(page_title="Insurance Predictor", layout="centered")
 
+# Logo
+st.image("Sarooj-Sazeh-Tabnak.png", width=200)
+
 # Language selection
 language = st.selectbox("🌐 Choose Language / Sprache wählen:", ["English", "Deutsch"], index=0)
-
-# Load model
-model = joblib.load("insurance_rf_model.pkl")
 
 # Styling
 st.markdown("""
@@ -29,7 +32,7 @@ st.markdown("""
 # Session state for history
 if 'history' not in st.session_state:
     st.session_state['history'] = pd.DataFrame(columns=[
-        'Age', 'Sex', 'BMI', 'Children', 'Smoker', 'Region', 'Predicted Cost (€)'
+        'Age', 'Sex', 'BMI', 'Children', 'Smoker', 'Region', 'Model', 'Predicted Cost (€)'
     ])
 
 # Title
@@ -55,6 +58,7 @@ bmi = st.slider("BMI (Body Mass Index)", 15.0, 50.0, 25.0)
 children = st.number_input("Number of Children" if language == "English" else "Anzahl der Kinder", min_value=0, max_value=5, value=0)
 smoker = st.selectbox("Smoker" if language == "English" else "Raucher", ['yes', 'no'] if language == "English" else ['ja', 'nein'])
 region = st.selectbox("Region", ['northeast', 'northwest', 'southeast', 'southwest'])
+model_choice = st.selectbox("Choose prediction model:" if language == "English" else "Modell auswählen:", ["Random Forest", "Linear Regression"])
 
 # Encode inputs
 sex_val = 0 if (sex == 'male' or sex == 'männlich') else 1
@@ -68,6 +72,11 @@ input_data = np.array([[age, sex_val, bmi, children, smoker_val,
 
 # Prediction
 if st.button("Predict Insurance Cost" if language == "English" else "Versicherungskosten vorhersagen"):
+    if model_choice == "Linear Regression":
+        model = joblib.load("insurance_linear_model.pkl")
+    else:
+        model = joblib.load("insurance_rf_model.pkl")
+
     prediction = model.predict(input_data)[0]
     msg = f"💡 Estimated Annual Insurance Cost: €{prediction:,.2f}" if language == "English" \
         else f"💡 Geschätzte jährliche Versicherungskosten: €{prediction:,.2f}"
@@ -80,9 +89,27 @@ if st.button("Predict Insurance Cost" if language == "English" else "Versicherun
         'Children': children,
         'Smoker': smoker,
         'Region': region,
+        'Model': model_choice,
         'Predicted Cost (€)': round(prediction, 2)
     }])
     st.session_state['history'] = pd.concat([st.session_state['history'], new_entry], ignore_index=True)
+
+    # Email input
+    email = st.text_input("Enter your email to receive the result:" if language == "English" else "E-Mail-Adresse eingeben:")
+    if email and st.button("Send Result to Email" if language == "English" else "Ergebnis per E-Mail senden"):
+        try:
+            msg = EmailMessage()
+            msg["Subject"] = "Your Insurance Prediction Result"
+            msg["From"] = "your_email@example.com"
+            msg["To"] = email
+            msg.set_content(f"Estimated Annual Insurance Cost: €{prediction:,.2f}")
+
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+                smtp.login("your_email@example.com", "your_password")
+                smtp.send_message(msg)
+            st.success("Email sent successfully!" if language == "English" else "E-Mail erfolgreich gesendet!")
+        except:
+            st.error("Failed to send email." if language == "English" else "E-Mail-Versand fehlgeschlagen.")
 
 # Display history
 if not st.session_state['history'].empty:
@@ -92,10 +119,3 @@ if not st.session_state['history'].empty:
     # Download CSV
     csv = st.session_state['history'].to_csv(index=False).encode('utf-8')
     st.download_button("⬇️ Download CSV" if language == "English" else "⬇️ CSV herunterladen", csv, "prediction_history.csv", "text/csv")
-
-    # HTML preview (instead of PDF for Cloud compatibility)
-    st.markdown("### 📄 Preview HTML Report" if language == "English" else "### 📄 HTML-Bericht anzeigen")
-    html_table = st.session_state['history'].to_html(index=False)
-    st.components.v1.html(f"<div style='overflow-x:auto;'>{html_table}</div>", height=400)
-
-    st.info("📄 PDF generation is only available in the local version." if language == "English" else "📄 PDF-Erstellung ist nur in der lokalen Version verfügbar.")
