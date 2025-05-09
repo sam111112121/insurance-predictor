@@ -12,8 +12,22 @@ st.set_page_config(page_title="Insurance Predictor", layout="centered")
 # Logo
 st.image("Sarooj-Sazeh-Tabnak.png", width=200)
 
+# Welcome banner (full width under logo)
+st.markdown("""
+<div style='background-color: #e3f2fd; padding: 20px; width: 100%; text-align: center; margin-bottom: 20px;'>
+    <h3 style='margin: 0;'>👋 {}<h3>
+    <p style='margin: 0;'>{}</p>
+</div>
+""".format(
+    "Welcome to the Insurance Cost Predictor App!" if st.session_state.get("language", "English") == "English" else
+    "Willkommen zur Versicherungskosten-Vorhersage-App!",
+    "Fill out the form to estimate your annual insurance cost using our trained model." if st.session_state.get("language", "English") == "English" else
+    "Füllen Sie das Formular aus, um Ihre jährlichen Versicherungskosten mithilfe unseres Modells zu schätzen."
+), unsafe_allow_html=True)
+
 # Language selection
 language = st.selectbox("🌐 Choose Language / Sprache wählen:", ["English", "Deutsch"], index=0)
+st.session_state["language"] = language
 
 # Styling
 st.markdown("""
@@ -37,19 +51,6 @@ if 'history' not in st.session_state:
 
 # Title
 st.title("💰 Insurance Cost Prediction App" if language == "English" else "💰 Versicherungskosten-Vorhersage")
-
-# Intro
-st.markdown("""
-<div style='background-color: #e3f2fd; padding: 15px; border-radius: 10px;'>
-    <h3>👋 {}<h3>
-    <p>{}</p>
-</div>
-""".format(
-    "Welcome to the Insurance Cost Predictor App!" if language == "English" else
-    "Willkommen zur Versicherungskosten-Vorhersage-App!",
-    "Fill out the form to estimate your annual insurance cost using our trained model." if language == "English" else
-    "Füllen Sie das Formular aus, um Ihre jährlichen Versicherungskosten mithilfe unseres Modells zu schätzen."
-), unsafe_allow_html=True)
 
 # Inputs
 age = st.slider("Age" if language == "English" else "Alter", 18, 64, 30)
