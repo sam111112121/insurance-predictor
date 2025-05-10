@@ -4,8 +4,6 @@ import numpy as np
 import joblib
 import os
 from sklearn.linear_model import LinearRegression
-import smtplib
-from email.message import EmailMessage
 
 st.set_page_config(page_title="Insurance Predictor", layout="centered")
 
@@ -61,7 +59,14 @@ st.title("💰 Insurance Cost Prediction App" if language == "English" else "�
 # Inputs
 age = st.slider("Age" if language == "English" else "Alter", 18, 64, 30)
 sex = st.selectbox("Sex" if language == "English" else "Geschlecht", ['male', 'female'] if language == "English" else ['männlich', 'weiblich'])
-bmi = st.slider("BMI (Body Mass Index)", 15.0, 50.0, 25.0)
+
+# دریافت قد و وزن از کاربر
+height = st.number_input("Enter your height (in cm)" if language == "English" else "Geben Sie Ihre Höhe (in cm) ein", min_value=50, max_value=250, value=170)
+weight = st.number_input("Enter your weight (in kg)" if language == "English" else "Geben Sie Ihr Gewicht (in kg) ein", min_value=30, max_value=200, value=70)
+
+# محاسبه BMI
+bmi = weight / ((height / 100) ** 2)
+
 children = st.number_input("Number of Children" if language == "English" else "Anzahl der Kinder", min_value=0, max_value=5, value=0)
 smoker = st.selectbox("Smoker" if language == "English" else "Raucher", ['yes', 'no'] if language == "English" else ['ja', 'nein'])
 region = st.selectbox("Region", ['northeast', 'northwest', 'southeast', 'southwest'])
@@ -84,7 +89,8 @@ if st.button("Predict Insurance Cost" if language == "English" else "Versicherun
     else:
         model = joblib.load("insurance_rf_model.pkl")
 
-    prediction = model.predict(input_data)[0]
+    prediction = model.predict(input_data)[0]  # مقدار پیش‌بینی را در متغیر prediction ذخیره می‌کنیم
+
     msg = f"💡 Estimated Annual Insurance Cost: €{prediction:,.2f}" if language == "English" \
         else f"💡 Geschätzte jährliche Versicherungskosten: €{prediction:,.2f}"
     st.success(msg)
@@ -100,23 +106,6 @@ if st.button("Predict Insurance Cost" if language == "English" else "Versicherun
         'Predicted Cost (€)': round(prediction, 2)
     }])
     st.session_state['history'] = pd.concat([st.session_state['history'], new_entry], ignore_index=True)
-
-    # Email input
-    email = st.text_input("Enter your email to receive the result:" if language == "English" else "E-Mail-Adresse eingeben:")
-    if email and st.button("Send Result to Email" if language == "English" else "Ergebnis per E-Mail senden"):
-        try:
-            msg = EmailMessage()
-            msg["Subject"] = "Your Insurance Prediction Result"
-            msg["From"] = "your_email@example.com"
-            msg["To"] = email
-            msg.set_content(f"Estimated Annual Insurance Cost: €{prediction:,.2f}")
-
-            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-                smtp.login("your_email@example.com", "your_password")
-                smtp.send_message(msg)
-            st.success("Email sent successfully!" if language == "English" else "E-Mail erfolgreich gesendet!")
-        except:
-            st.error("Failed to send email." if language == "English" else "E-Mail-Versand fehlgeschlagen.")
 
 # Display history
 if not st.session_state['history'].empty:
