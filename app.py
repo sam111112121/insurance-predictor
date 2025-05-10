@@ -17,7 +17,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Welcome message
-language = st.selectbox("🌐 Choose Language / Sprache wählen:", ["English", "Deutsch"], index=0)
+if 'language' not in st.session_state:
+    st.session_state["language"] = "English"
+
+language = st.selectbox("🌐 Choose Language / Sprache wählen:", ["English", "Deutsch"], index=0 if st.session_state["language"] == "English" else 1)
 st.session_state["language"] = language
 
 st.markdown("""
